@@ -1,0 +1,65 @@
+/***********************************************************************
+ * Header:
+ *    PORTFOLIO
+ * Summary:
+ *    This contains the class for portfolio and will hold the number of
+ *    shares, value and profit.
+ * Author
+ *    Ashleigh Walter & Ali Cope
+ ************************************************************************/
+
+#ifndef PORTFOLIO_H
+#define PORTFOLIO_H
+
+#include "dollars.h"   // for Dollars defined in StockTransaction
+#include "queue.h"     // for QUEUE
+#include <iostream>    // for ISTREAM and OSTREAM
+
+class Portfolio
+{
+  private:
+   int numShares;
+   Dollars value;
+   Dollars proceeds;
+   Dollars profit;
+
+  public:
+   Portfolio() : numShares(0), value(0), proceeds(0), profit(0) {}
+   Portfolio(int numShares, Dollars value, Dollars proceeds, Dollars profit);
+   Portfolio(const Portfolio & rhs);
+   ~Portfolio() {numShares = 0; value = 0; proceeds = 0; profit = 0;}
+
+   int getNumShares() {return numShares;}
+   Dollars getValue() {return value;}
+   Dollars getProceeds() {return proceeds;}
+   Dollars getProfit() {return profit;}
+
+   void setNumShares(int numShares) {this->numShares = numShares;}
+   void setValue(Dollars value) {this->value = value;}
+   void setProceeds(Dollars proceeds) {this->proceeds = proceeds;}
+   void setProfit(Dollars profit) {this->profit = profit;}
+};
+
+/**********************************************************
+ * NON DEFAULT CONSTRUCTOR
+ *********************************************************/
+Portfolio :: Portfolio(int numShares, Dollars value, Dollars profit)
+{
+   this->numShares = numShares;
+   this->value = value;
+   this->proceeds = proceeds;
+   this->profit = profit;
+}
+
+/**********************************************************
+ * COPY CONSTRUCTOR
+ *********************************************************/
+Portfolio :: Portfolio(const Portfolio & rhs)
+{
+   this->numShares = rhs.numShares;
+   this->value = rhs.value;
+   this->proceeds = rhs.proceeds;
+   this->profit = rhs.profit;
+}
+
+#endif // PORTFOLIO_H

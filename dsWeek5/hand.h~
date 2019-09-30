@@ -1,0 +1,98 @@
+/***********************************************************************
+ * Header:
+ *    Hand
+ * Summary:
+ *    This will contain the class definition of:
+ *       hand            : a hand of cards
+ * Author
+ *    Ashleigh Walter & Ali Cope
+ ************************************************************************/
+
+#ifndef HAND_H
+#define HAND_H
+#include <string>
+#include "card.h"
+#include "set.h"
+#include <fstream>
+#include <iostream>
+using std::ifstream;
+using std::string;
+using std::cout;
+using std::endl;
+
+namespace custom
+{
+class Hand
+{
+
+  public:
+   set <Card> hand;
+   set <Card> :: iterator it;
+   int match;
+   int size() { return hand.size(); }
+   //void display();
+   Hand(){match = 0;}
+
+   bool readHand()
+   {
+      char fileName[] = "/home/cs235/week05/hand.txt";
+      ifstream fin(fileName);
+      if (fin.fail())
+      {
+         cout << "Unable to open file " << fileName << endl;
+         return false;
+      }
+      while (!fin.eof())
+      {
+         Card fish;
+         fin >> fish;
+         hand.insert(fish);
+      }
+      fin.close();
+      return true;
+   } 
+
+  void matchCheck(Card cardName)
+    {
+       set <Card> :: iterator itEmpty = hand.end();
+       set <Card> :: iterator itFind = hand.find(cardName);
+      //set <Card> :: iterator itEmpty = hand.end();
+     // set <Card> :: iterator itFind = hand.find(cardName);
+    
+//       if (itFind != itEmpty)
+       if(itFind != itEmpty && cardName != "-INVALID-")
+       {
+         cout << "\tYou got a match!\n";
+         match++;
+         hand.erase(itFind); 
+       }
+       else
+      {
+         cout << "\tGo Fish!\n";
+      }
+   } 
+    
+  void display()
+     {
+        cout << "You have " << match << " matches!\n" << "The remaining cards: " ;
+
+        //if (*it != "-INVALID-")
+        for (it = hand.begin(); it != hand.end();)
+   {
+      if (*it != "-INVALID-")
+      {
+      cout << *it;
+      it++;
+      if (it != hand.end())
+         cout << ", ";
+      else
+         cout << endl;
+      }
+      else
+         it++;
+
+   }
+    };
+};
+};
+#endif // HAND_H
