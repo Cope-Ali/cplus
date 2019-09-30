@@ -1,0 +1,17 @@
+// File: customer.cpp
+
+#include <iostream>
+#include "customer.h"
+#include "address.h"
+#include <string>
+
+using namespace std;
+
+// Put the method bodies for your customer class here
+
+void Customer::display()
+{
+   Address address = getAddress();
+   cout << getName() << endl;
+   address.display();
+}
