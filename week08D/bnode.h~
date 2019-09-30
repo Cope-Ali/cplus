@@ -1,0 +1,195 @@
+/***********************************************************************
+ * Header:
+ *    BNODE
+ * Summary:
+ *    This will contain the class definition of:
+ *      bnode             : similar to std::bnode
+ * Author
+ *    Ali Cope, Ashleigh Walter & George Brown
+ ************************************************************************/
+
+#ifndef BNODE_H
+#define BNODE_H
+
+/***********************************************
+ * BNODE
+ **********************************************/
+template <class T>
+   class BNode
+{
+  public:
+   T data;
+   BNode * pLeft;
+   BNode * pRight;
+   BNode * pParent;
+   
+   // constructors
+  BNode() : pLeft(NULL), pRight(NULL), pParent(NULL), /*data(NULL)*/ {}
+   BNode(const T & t) { data = t; pLeft = NULL; pRight = NULL; pParent = NULL; }
+};
+
+
+/**********************************************
+ * COPYBTREE
+ * Copy nodes in a tree over to another one
+ **********************************************/
+template <class T>
+BNode <T> * copyBTree(const BNode <T> * pSrc) throw(const char *)
+{
+   // there is nothing to copy
+   if (pSrc == NULL)
+      return NULL;
+
+   // create node
+   BNode <T> * pDestination;
+   
+   // try to allocate new node
+   try
+   {
+      pDestination = new BNode <T> (pSrc->data);
+   }
+   catch(std::bad_alloc)
+   {
+      throw "ERROR: Unable to allocate a node";
+   }
+   
+   // get the left side data
+   pDestination->pLeft = copyBTree(pSrc->pLeft);
+
+   // copy over the left side and connect nodes
+   if (pDestination->pLeft != NULL)
+      pDestination->pLeft->pParent = pDestination;
+
+   // get the right side data
+   pDestination->pRight = copyBTree(pSrc->pRight);
+   // copy over the right side and connect nodes
+   if (pDestination->pRight != NULL)
+      pDestination->pRight->pParent = pDestination;
+
+   return pDestination;
+}
+
+/**********************************************
+ * ADDLEFT
+ * Adds a node to the left of current node,
+ * connecting them
+ **********************************************/
+template <class T>
+void addLeft(BNode <T> * pNode, BNode <T> * pAdd)
+{
+   // there is a node to add
+   if (pAdd != NULL)
+      pAdd->pParent = pNode;
+   pNode->pLeft = pAdd;
+}
+
+/**********************************************
+ * ADDLEFT
+ * Allocates a new node and then adds it to the left
+ **********************************************/
+template <class T>
+void addLeft(BNode <T> * pNode, const T & t) throw(const char *)
+{
+   try
+   {
+      // try to allocate new node
+      BNode <T> * pAdd = new BNode <T> (t);
+
+      // add node to the left connecting them
+      pAdd->pParent = pNode;
+      pNode->pLeft = pAdd;
+   }
+   catch(std::bad_alloc)
+   {
+      throw "ERROR: Unable to allocate a node";
+   }
+}
+
+/**********************************************
+ * ADDRIGHT
+ * Adds a node to the right of current node,
+ * connecting them
+ **********************************************/
+template <class T>
+void addRight(BNode <T> * pNode, BNode <T> * pAdd)
+{
+   // there is a node to add
+   if (pAdd != NULL)
+      pAdd->pParent = pNode;
+   pNode->pRight = pAdd;
+}
+
+/**********************************************
+ * ADDRIGHT
+ * Allocates a new node and then adds it to the right
+ **********************************************/
+template <class T>
+void addRight(BNode <T> * pNode, const T & t) throw(const char *)
+{
+   try
+   {
+      // try to allocate new node
+      BNode <T> * pAdd = new BNode <T> (t);
+      
+      // add node to the right connecting them
+      pAdd->pParent = pNode;
+      pNode->pRight = pAdd;
+   }
+   catch(std::bad_alloc)
+   {
+      throw "ERROR: Unable to allocate a node";
+   }
+      
+}
+
+/**********************************************
+ * DELETEBTREE
+ * Clear all the nodes in the tree
+ **********************************************/
+template <class T>
+void deleteBTree(BNode <T> * & pNode)
+{
+   // there is nothing to delete
+   if (pNode == NULL)
+      return;
+
+   deleteBTree(pNode->pLeft);
+   deleteBTree(pNode->pRight);
+   delete pNode;
+   pNode = NULL;
+}
+
+/**********************************************
+ * SIZEBTREE
+ * Determine the size of the tree
+ **********************************************/
+template <class T>
+int sizeBTree(const BNode <T> * pRoot)
+{
+   // there is nothing to calculate
+   if (pRoot == NULL)
+      return 0;
+   // return the size
+   else
+      return sizeBTree(pRoot->pLeft) + 1 + sizeBTree(pRoot->pRight);
+}
+
+/**********************************************
+ * OSTREAM OPERATOR OVERLOAD
+ * Display the nodes in the tree
+ **********************************************/
+template <class T>
+std::ostream & operator << (std::ostream & out, BNode <T> * rhs)
+{
+   if (rhs == NULL)
+      return out;
+   
+   out << rhs->pLeft;
+   out << rhs->data << " ";
+   out << rhs->pRight;
+     
+   return out;
+}
+
+#endif // BNODE_H
+

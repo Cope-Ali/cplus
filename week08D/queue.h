@@ -1,0 +1,332 @@
+/***********************************************************************
+ * Header:
+ *    Queue
+ * Summary:
+ *    This will contain the class definition of:
+ *       queue             : similar to std::queue
+ * Author
+ *    Ashleigh Walter & Ali Cope
+ ************************************************************************/
+
+#ifndef QUEUE_H
+#define QUEUE_H
+
+#include <cassert>
+
+// a little helper macro to write debug code
+#ifdef NDEBUG
+#define Debug(statement)
+#else
+#define Debug(statement) statement
+#endif // !NDEBUG
+
+namespace custom
+{
+
+   /************************************************
+    * QUEUE
+    ***********************************************/
+   template <class T>
+      class queue
+   {
+      
+     public:
+     // constructors and destructors
+     queue() : numPush(0), numPop(0), numCapacity(0), data(NULL) {}
+      queue(int numCapacity)            throw (const char *);
+      queue(const queue <T> & rhs)      throw (const char *);
+      ~queue()                            { delete [] data; }
+      
+      // assignment operator
+      queue & operator = (const queue & rhs) throw (const char *);
+
+      int  size()     const { return (numPush - numPop); } // return size
+
+      bool empty()    const;
+      void clear() { numPush = 0; numPop = 0; } // clear elements in queue
+      void push(const T & t);
+      void pop();
+      T front()       const  throw (const char *);
+      T& front()             throw (const char *);
+      T back()        const  throw (const char *);
+      T& back()              throw (const char *);
+
+      private:
+      T * data;              // dynamically allocated queue of T
+      int numPush;
+      int numPop;
+      int numCapacity;       // capacity of queue
+      
+      void resize(int numCapacity);
+      int iHead();
+      int iTail();
+     
+   };
+
+   /**********************************************
+    * QUEUE : NON-DEFAULT CONSTRUCTOR
+    * Preallocate the queue to "capacity"
+    **********************************************/
+   template <class T>
+      queue <T> :: queue(int numCapacity) throw (const char *)
+   {
+      assert(numCapacity >= 0);
+      
+      // do nothing if there is nothing to do.
+      // since we can't grow an array, this is kinda pointless
+      if (numCapacity != 0)
+      {
+         this->numCapacity = 0;
+         this->numPush = 0;
+         this->numPop = 0;
+         this->data = NULL;
+         return;
+      }
+      
+      // attempt to allocate
+      try
+      {
+         data = new T[numCapacity];
+      }
+      catch (std::bad_alloc)
+      {
+         throw "ERROR: Unable to allocate a new buffer for queue.";
+      }
+      
+      
+      // copy over the stuff
+      this->numCapacity = numCapacity;
+   }
+   
+   /*******************************************
+    * QUEUE :: COPY CONSTRUCTOR
+    *******************************************/
+   template <class T>
+      queue <T> :: queue(const queue <T> & rhs) throw (const char *)
+   {
+      // do nothing if there is nothing to do
+      if (rhs.size() == 0)
+      {
+         numPush = 0;
+         numPop = 0;
+         data = NULL;
+         return;
+      }
+
+      //make sure we are starting with a blank slate
+      clear();
+      
+      // attempt to allocate
+      try
+      {
+         data = new T[rhs.size()];
+      }
+      catch (std::bad_alloc)
+      {
+         throw "ERROR: Unable to allocate a new buffer for queue.";
+      }
+
+      for (int i = rhs.numPop; i < rhs.numPush; i++)
+            push(rhs.data[i % rhs.numCapacity]);
+
+   }
+   
+   /*******************************************
+    * QUEUE :: Assignment
+    *******************************************/
+   template <class T>
+      queue <T> & queue <T> :: operator = (const queue <T> & rhs)
+      throw (const char *)
+      {
+         //empty queue so new data can be copied over
+         clear();
+
+         try
+         {
+            // make sure that there is capacity for the
+            // number of elements we are adding
+            if (numCapacity < rhs.size())
+               resize(rhs.size());
+         }
+         catch (std::bad_alloc)
+         {
+            throw "ERROR: Unable to allocate a new buffer for Queue.";
+         }
+
+         // loop through the elements from iHead to iTail
+         // and add them to the new side
+         for (int i = rhs.numPop; i < rhs.numPush; i++)
+            push(rhs.data[i % rhs.numCapacity]);
+
+         return *this;
+      }
+   
+   /********************************************
+    * Queue : Empty
+    * Check if the queue is empty
+    *******************************************/
+   template <class T>
+      bool queue <T> :: empty() const
+   {
+      // return true if queue is empty
+      if (size() == 0)
+         return true;
+      else
+         return false;
+   }
+   
+   /********************************************
+    * QUEUE : PUSH
+    * Check for capacity and resize if needed
+    * Add new item to end of queue
+    *******************************************/
+   template <class T>
+      void queue <T> :: push(const T & t)
+   {
+      try
+      {
+            if(empty())
+            {
+            numPush = 0;
+            numPop = 0;
+            }
+         if (size() == numCapacity)
+            // set capacity to 1 if empty
+            if(numCapacity == 0)
+               resize(1);
+         // If the re are elements in the queue, double it
+            else if (numCapacity > 0)
+               resize(numCapacity * 2);
+      
+         // add item to the queue
+         numPush++;
+         data[iTail()] = t;
+      }
+      catch (std::bad_alloc)
+      {
+         throw "ERROR: Unable to allocate a new buffer for queue";
+      }
+   }
+   
+   /********************************************
+    * QUEUE : Pop
+    * Remove the element at the head of the queue
+    *******************************************/
+   template <class T>
+      void queue <T> :: pop()
+   {
+      if (!empty())
+         numPop++;
+   }
+   
+   /********************************************
+    * QUEUE : Front (Getter)
+    * Return the oldest element added to the queue
+    *******************************************/
+   template <class T>
+      T queue <T> :: front() const throw(const char *)
+   {
+      // the queue is empty, so throw an error
+      if (empty())
+         throw "ERROR: attempting to access an element in an empty queue";
+      
+      return data[iHead()];
+   }
+   
+   /********************************************
+    * QUEUE : Front (Setter)
+    * Return the oldest element added to the queue
+    *******************************************/
+   template <class T>
+      T & queue <T> :: front() throw(const char *)
+   {
+      // the queue is empty, so throw an error
+      if (empty())
+         throw "ERROR: attempting to access an element in an empty queue";
+      
+      return data[iHead()];
+   }
+
+   /********************************************
+    * QUEUE : Back (Getter)
+    * Return the newest element added to the queue
+    *******************************************/
+   template <class T>
+      T queue <T> :: back() const throw(const char *)
+   {
+      // the queue is empty, so throw an error
+      if (empty())
+         throw "ERROR: attempting to access an element in an empty queue";
+      
+      return data[iTail()];
+   }
+   
+   /********************************************
+    * QUEUE : Back (Setter)
+    * Return the newest element added to the queue
+    *******************************************/
+   template <class T>
+      T & queue <T> :: back() throw(const char *)
+   {
+      // the queue is empty, so throw an error
+      if (empty())
+         throw "ERROR: attempting to access an element in an empty queue";
+      
+      return data[iTail()];
+   }
+   
+   /***************************************************
+    * QUEUE: iHead
+    * Increase the iHead index by one when elements
+    * are removed from the front
+    **************************************************/
+   template <class T>
+      int queue <T> :: iHead()
+   {
+      return (numPop % numCapacity);
+   }
+
+   /***************************************************
+    * QUEUE: iTail
+    * Increase the iTail index by one when an element
+    * is added to the queue
+    **************************************************/
+   template <class T>
+      int queue <T> :: iTail()
+   {
+      return ((numPush - 1) % numCapacity);
+   }
+   
+   /***************************************************
+    * QUEUE: RESIZE
+    * Increase the size of the capacity
+    **************************************************/
+   template <class T>
+      void queue <T> :: resize(int newCapacity)
+   {
+         //create a temp queue that we can use to copy data
+         //from the too small queue
+      T *temp = new T[newCapacity];
+      
+      // there are items in the stack
+      if (data != NULL)
+      {
+
+            for (int i = numPop; i < numPush; i++)  
+            temp[i]=data[i % numCapacity];
+
+         //delete all data so we are ready to copy it back
+         delete [] data;
+      }
+
+      //copy data from the temp back into our newly expanded data      
+      data = temp;
+
+      //set our capacity to the new capacity   
+      numCapacity = newCapacity;
+
+   };
+   
+   // namespace custom
+}
+#endif // QUEUE_H

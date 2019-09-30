@@ -1,0 +1,35 @@
+###############################################################
+# Program:
+#     Assignment 09, Binary Search Tree
+#     Brother Kirby, CS235
+# Author:
+#     Ashleigh Walter, Ali Cope & George Brown
+# Summary:
+#     This program will use a Binary Search Tree class that will use
+#     iterators and nodes to iterate through the tree, add, remove,
+#     locate and copy other nodes within the tree.
+# Time:
+#     Paired Programming:
+#     Ashleigh Walter: 6.5 hours
+#     Ali Cope:
+#     George Brown:
+# Hardest Part:
+#     Ashleigh Walter:
+#     Ali Cope:
+#     George Brown:
+###############################################################
+
+##############################################################
+# The main rule
+##############################################################
+a.out: assignment09.o
+	g++ -o a.out assignment09.o -g -std=c++11
+	tar -cf assignment09.tar *.h *.cpp makefile
+
+##############################################################
+# The individual components
+#      assignment09.o     : the driver program
+##############################################################
+assignment09.o: bst.h stack.h assignment09.cpp
+	g++ -c assignment09.cpp -g -std=c++11
+
