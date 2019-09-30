@@ -1,0 +1,116 @@
+/***********************************************************************
+ * Implementation:
+ *    NOW SERVING
+ * Summary:
+ *    This will contain the implementation for nowServing() as well as any
+ *    other function or class implementations you may need
+ * Author
+ *    Ashleigh Walter & Ali Cope
+ **********************************************************************/
+
+#include <iostream>     // for ISTREAM, OSTREAM, CIN, and COUT
+#include <string>       // for STRING
+#include <cassert>      // for ASSERT
+#include "nowServing.h" // for nowServing() prototype
+#include "deque.h"      // for DEQUE
+#include "student.h"
+#include "tutorCenter.h"
+#include "tutorCenter.h"
+//#include <deque>
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::ostream;
+using std::ios;
+//using namespace std;
+using namespace custom;
+
+/************************************************
+ * NOW SERVING
+ * The interactive function allowing the user to
+ * handle help requests in the Linux lab
+ ***********************************************/
+void nowServing()
+{
+      TutorCenter helpLine;
+   // instructions
+   cout << "Every prompt is one minute.  The following input is accepted:\n";
+   cout << "\t<class> <name> <#minutes>    : a normal help request\n";
+   cout << "\t!! <class> <name> <#minutes> : an emergency help request\n";
+   cout << "\tnone                         : no new request this minute\n";
+   cout << "\tfinished                     : end simulation\n";
+
+   // your code here
+   string input;
+   string course;
+   string name;
+   int count = 0;
+   int minutes = 0;
+   bool quit = false;
+   
+   do
+   {
+      cout << "<" << count << "> ";
+      count++;
+      
+      cin >> input;
+      if(input == "finished")
+         quit = true;
+      
+      else if (input != "none")
+      {
+         if (input == "!!")
+         {
+            cin >> course >> name >> minutes;
+            Student newStudent = Student(true, course, name, minutes);
+            helpLine.line.push_front(newStudent);
+         }
+         else
+         {
+            course = input;
+            cin >> name >> minutes;
+            Student newStudent = Student(false, course, name, minutes);
+            helpLine.line.push_back(newStudent);
+         }
+         helpLine.passTime();
+         if (helpLine.currentStudent.min > 0)
+         {
+            if(helpLine.currentStudent.getUrgent())
+               cout <<"\tEmergency for ";
+            else
+               cout << "\tCurrently serving ";
+                  
+            cout << helpLine.currentStudent.getName() 
+                 << " for class "
+                 << helpLine.currentStudent.getClassName() 
+                 << ". Time left: "
+                 << helpLine.currentStudent.getMin() 
+                 << endl;
+         }
+      }
+      else
+      {
+         helpLine.passTime(); 
+         if (helpLine.currentStudent.min > 0)
+         {
+            if(helpLine.currentStudent.getUrgent())
+               cout <<"\tEmergency for ";
+            else
+               cout << "\tCurrently serving ";
+            
+            cout << helpLine.currentStudent.getName() 
+                 << " for class "
+                 << helpLine.currentStudent.getClassName() 
+                 << ". Time left: "
+                 << helpLine.currentStudent.getMin() 
+                 << endl;
+         }        
+      }
+   }
+   while (!quit);
+   // end
+   cout << "End of simulation\n";
+}
+
+

@@ -1,0 +1,691 @@
+/***********************************************************************
+ * Component:
+ *    Assignment 09, Binary Search Tree (BST)
+ *    Brother Kirby, CS 235
+ * Author:
+ *    Ashleigh Walter, Ali Cope & George Brown
+ * Summary:
+ *    Create a binary search tree
+ *    This will contain the class definition of: BST
+ ************************************************************************/
+
+#ifndef BST_H
+#define BST_H
+#include <string>
+namespace custom
+{
+   /************************************************
+    * BST (Binary Search Tree)
+    ***********************************************/
+   template <class T>
+      class BST
+   {
+     public:
+      // constructors and destructors
+     BST() : root(NULL), numElements(0) {}
+      BST(const BST <T> & rhs) throw (const char *);
+      ~BST() { clear(); }
+      
+      // assignment operator
+      BST <T> & operator = (const BST <T> & rhs)
+         throw (const char *);
+      
+      //return size
+      int size() const { return numElements; }
+      
+      //check if empty
+      bool empty() { return root == NULL; }
+      
+      //clear elements in BST
+      void clear() { deleteBinaryTree(root); root = NULL;  numElements = 0; }
+      
+      // define bnode class
+      class BNode;
+      
+      // the various iterator interfaces
+      class iterator;
+      iterator begin() const;
+      iterator end() const { return iterator (NULL); }
+      iterator rbegin() const;
+      iterator rend() const { return iterator (NULL); }
+      
+      // find an item in the BST
+      iterator find(const T & t);
+      
+      //insert item into BST
+      void insert(const T & t) throw (const char *);
+      
+      // erase item in the BST
+      void erase(iterator & it);
+      
+      // return root
+      BNode * getRoot() const { return root; }
+      
+     protected:
+      BNode * root;
+      int numElements;
+      
+      // delete elements in the BST
+      void deleteBinaryTree(BNode * pDel);
+      
+      // copy elements from a BST
+      void copyBinaryTree(BNode * pSrc, BNode *& pDest);
+   };
+   
+   /**************************************************
+   * BNODE
+   * defines the bnode class
+   *************************************************/
+   template <class T>
+      class BST <T> :: BNode
+   {
+     public:
+      T data;
+      BNode * pLeft;
+      BNode * pRight;
+      BNode * pParent;
+      
+      // constructors
+     BNode() : pLeft(NULL), pRight(NULL), pParent(NULL), data(NULL){}
+      BNode(const T & t) { data = t; pLeft = NULL;
+         pRight = NULL; pParent = NULL; }
+      
+      void addLeft(BNode * pNode, BNode * pAdd);
+      void addLeft(BNode * pNode, const T & t) throw (const char *);
+      void addRight(BNode * pNode, BNode * pAdd);
+      void addRight(BNode * pNode, const T & t) throw (const char *);
+      
+     private:
+      friend class BST;
+      void verifyRB(int depth);
+      void verifyBST();
+      void balance();
+   };
+   
+   /**************************************************
+    * ITERATOR
+    * An iterator through the BST
+    *************************************************/
+   template <class T>
+      class BST <T> :: iterator
+   {
+     private:
+      BNode * pNode;
+      friend class BST;
+      
+     public:
+      // constructors and destructors
+      iterator() { pNode = NULL; }
+      iterator(BNode * p) { pNode = p; }
+      iterator(const iterator & rhs) { pNode = rhs.pNode; }
+      
+      // assignment operator
+      iterator & operator = (const iterator & rhs)
+      {
+         pNode = rhs.pNode;
+         return *this;
+      }
+      
+      // equals, not equals operator
+      bool operator == (const iterator & rhs) const { return rhs.pNode == pNode; }
+      bool operator != (const iterator & rhs) const { return rhs.pNode != pNode; }
+      
+      // increment
+      iterator & operator ++ ();
+      
+      // postfix increment
+      iterator operator ++ (int postfix)
+      {
+         iterator it = *this;
+         ++(*this);
+         return it;
+      }
+      
+      // decrement
+      iterator & operator -- ();
+      
+      // postfix decrement
+      iterator operator -- (int postfix)
+      {
+         iterator it = *this;
+         --(*this);
+         return it;
+      }
+      
+      // dereference operator
+      T & operator * ()       { return pNode->data; }
+   };
+   
+   /*******************************************
+    * BST :: COPY CONSTRUCTOR
+    *******************************************/
+   template <class T>
+      BST <T> :: BST(const BST <T> & rhs) throw (const char *)
+   {
+      // do nothing if there is nothing to do
+      if (rhs.numElements == 0)
+      {
+         numElements = 0;
+         root = NULL;
+         return;
+      }
+      
+      // clear all elements
+      numElements = 0;
+      root = NULL;
+      
+      // attempt to allocate
+      try
+      {
+         BNode * pNew = new BNode (rhs.root->data);
+      }
+      catch (std::bad_alloc)
+      {
+         throw "ERROR: Unable to allocate anode";
+      }
+      
+      // copy the items over one at a time
+      // using the assignment operator
+      *this = rhs;
+      numElements = rhs.numElements;
+   }
+   
+   /*******************************************
+    * BST :: Assignment
+    *******************************************/
+   template <class T>
+      BST <T> & BST <T> :: operator = (const BST <T> & rhs)
+      throw (const char *)
+      {
+         //check if they are already the same, no need
+         // copy again
+         if(this == &rhs)
+            return *this;
+         
+         // do nothing if there is nothing to do
+         if (rhs.numElements == 0)
+         {
+            numElements = 0;
+            root = NULL;
+            return *this;
+         }
+         
+         // *this needs to be empty before we copy over rhs
+         clear();
+         
+         try
+         {
+            // allocate new node
+            BNode * pNew = new BNode(rhs.root->data);
+            
+            // copy the data over
+            for (iterator it = rhs.begin(); it != rhs.end(); it++)
+            {
+               insert(*it);
+            }
+         }
+         catch (std::bad_alloc)
+         {
+            throw "ERROR: Unable to allocate a node";
+         }
+         return *this;
+      }
+   
+   /**********************************************
+    * ADDLEFT
+    * Adds a node to the left of current node,
+    * connecting them
+    **********************************************/
+   template <class T>
+      void BST <T> :: BNode :: addLeft(BNode * pNode, BNode * pAdd)
+   {
+      // there is a node to add
+      if (pAdd != NULL)
+         pAdd->pParent = pNode;
+      pNode->pLeft = pAdd;
+   }
+   
+   /**********************************************
+    * ADDLEFT
+    * Allocates a new node and then adds it to the left
+    **********************************************/
+   template <class T>
+      void BST <T> :: BNode :: addLeft(BNode * pNode, const T & t) throw(const char *)
+   {
+      try
+      {
+         // try to allocate new node
+         BNode * pAdd = new BNode (t);
+         
+         // add node to the left connecting them
+         pAdd->pParent = pNode;
+         pNode->pLeft = pAdd;
+      }
+      catch(std::bad_alloc)
+      {
+         throw "ERROR: Unable to allocate a node";
+      }
+   }
+   
+   /**********************************************
+    * ADDRIGHT
+    * Adds a node to the right of current node,
+    * connecting them
+    **********************************************/
+   template <class T>
+      void BST <T> :: BNode :: addRight(BNode * pNode, BNode * pAdd)
+   {
+      // there is a node to add
+      if (pAdd != NULL)
+         pAdd->pParent = pNode;
+      pNode->pRight = pAdd;
+   }
+   
+   /**********************************************
+    * ADDRIGHT
+    * Allocates a new node and then adds it to the right
+    **********************************************/
+   template <class T>
+      void BST <T> :: BNode :: addRight(BNode * pNode, const T & t) throw(const char *)
+   {
+      try
+      {
+         // try to allocate new node
+         BNode * pAdd = new BNode (t);
+         
+         // add node to the right connecting them
+         pAdd->pParent = pNode;
+         pNode->pRight = pAdd;
+      }
+      catch(std::bad_alloc)
+      {
+         throw "ERROR: Unable to allocate a node";
+      }
+      
+   }
+   
+   /*******************************************
+    * DELETE BINARY TREE
+    * Delete all elements from the tree
+    *******************************************/
+   template <class T>
+      void BST <T> :: deleteBinaryTree(BNode * pDel)
+   {
+      // if there are elements
+      if(pDel != NULL)
+      {
+         // traverse the left
+         if(pDel->pLeft != NULL)
+            deleteBinaryTree(pDel->pLeft);
+         // traverse the right
+         if(pDel->pRight != NULL)
+            deleteBinaryTree(pDel->pRight);
+         
+         // delete and set to NULL
+         delete pDel;
+         pDel = NULL;
+      }
+   }
+   
+   /*******************************************
+    * COPY BINARY TREE
+    * Copy the data from one tree to another
+    *******************************************/
+   template <class T>
+      void BST <T> :: copyBinaryTree(BNode * pSrc, BNode *& pDest)
+   {
+      // there is nothing to copy
+      if (pSrc == NULL)
+         pDest = NULL;
+      {
+         //create a new node @pDest with the data from the source
+         pDest = new BNode(pSrc->data);
+         
+         //copy the left side
+         copyBinaryTree(pSrc->pLeft, pDest->pLeft);
+         
+         //copy the right side
+         copyBinaryTree(pSrc->pRight, pDest->pRight);
+      }
+   }
+   
+   /*******************************************
+    * BEGIN
+    * Return the left most element in the tree
+    *******************************************/
+   template <class T>
+      typename BST <T> :: iterator BST <T> :: begin() const
+   {
+      BNode * pNode = root;
+      
+      // there is nothing to do
+      if (pNode == NULL)
+         return pNode;
+      
+      // while there are elements remaining, find the
+      // left most
+      while (pNode->pLeft)
+      {
+         pNode = pNode->pLeft;
+      }
+      
+      return pNode;
+   }
+   
+   /*******************************************
+    * RBEGIN
+    * Return the right most element in the tree
+    *******************************************/
+   template <class T>
+      typename BST <T> :: iterator BST <T> :: rbegin() const
+   {
+      
+      BNode * pNode = root;
+      
+      // there is nothing to do
+      if (pNode == NULL)
+         return pNode;
+      
+      // while there are elements remaining, find the
+      // right most
+      while (pNode->pRight)
+      {
+         pNode = pNode->pRight;
+      }
+      
+      return pNode;
+   }
+   
+   /*******************************************
+    * FIND
+    * Locate an item in the tree
+    *******************************************/
+   template <class T>
+      typename BST <T> :: iterator BST <T> :: find(const T & t)
+   {
+      // Start at the beginning
+      iterator it = begin();
+      
+      // go until the end
+      while(it != end())
+      {
+         //check to see if the data matches
+         if(it.pNode->data == t)
+            //return match iterator
+            return it;
+         //no match, increment iterator
+         else
+            it++;
+      };
+      // no match was found so return the iterator which
+      // is pointing at the end
+      return it;
+   }
+   
+   /*******************************************
+    * INSERT
+    * Insert an item in the tree
+    *******************************************/
+   template <class T>
+      void BST <T> :: insert(const T & t) throw (const char *)
+   {
+      //sets pointer to new node to be added
+      BNode * pAdd = new BNode (t);
+      numElements++;
+      
+      // if root is null then the the BST is empty
+      // and we just add the node
+      if (root == NULL)
+      {
+         pAdd->pParent = NULL;
+         root = pAdd;
+      }
+      
+      //if not we need to find where to add it
+      else
+      {
+         // pCurrent will start at root and go through
+         // all possibilities
+         BNode *pCurrent = root;
+         
+         // we will loop until we add the node
+         // to either right or left
+         while(pCurrent != pAdd)
+         {
+            //if t is less than data in pCurrent we go left
+            if(t <= pCurrent->data)
+            {
+               //if pCurrent left node is empty we just add
+               if(pCurrent->pLeft == NULL)
+               {
+                  if (pAdd != NULL)
+                     pAdd->pParent = pCurrent;
+                  pCurrent->pLeft = pAdd;
+                  pCurrent = pAdd;
+               }
+               //if pCurrent is larger than pLeft we insert here.
+               else if(t >= pCurrent->pLeft->data)
+               {
+                  if (pAdd != NULL)
+                     pCurrent->pLeft->pParent = pAdd;
+                  pAdd->pLeft = pCurrent->pLeft;
+                  
+                  if (pAdd != NULL)
+                     pAdd->pParent = pCurrent;
+                  pCurrent->pLeft = pAdd;
+                  pCurrent = pAdd;
+               }
+               else
+               {
+                  pCurrent = pCurrent->pLeft;
+               }
+            }
+            //if t is not <= current node than we go right
+            else
+            {
+               //if right node is empty we insert here
+               if(pCurrent->pRight == NULL)
+               {
+                  if (pAdd != NULL)
+                     pAdd->pParent = pCurrent;
+                  pCurrent->pRight = pAdd;
+                  pCurrent = pAdd;
+               }
+               //if T is less than right node we insert here
+               else if(t <= pCurrent->pRight->data)
+               {
+                  if (pAdd != NULL)
+                     pCurrent->pRight->pParent = pAdd;
+                  pAdd->pRight = pCurrent->pRight;
+                  
+                  if (pAdd != NULL)
+                     pAdd->pParent = pCurrent;
+                  pCurrent->pRight = pAdd;
+                  pCurrent = pAdd;
+               }
+               else
+               {
+                  pCurrent = pCurrent->pRight;
+               }
+            }
+         }
+      }
+   }
+   
+   /*******************************************
+    * ERASE
+    * Erase an item in the tree
+    *******************************************/
+   template <class T>
+      void BST <T> :: erase(iterator & it)
+   {
+      // make sure there's something to erase
+      if (it == end())
+         return;
+      
+      BNode * pDel = it.pNode;
+      
+      // No Children
+      if (pDel->pRight == NULL && pDel->pLeft == NULL)
+      {
+         // if it's the right side, set to null before deleting
+         if (pDel->pParent != NULL && pDel->pParent->pRight == pDel)
+            pDel->pParent->pRight = NULL;
+         // same for the left side
+         if (pDel->pParent != NULL && pDel->pParent->pLeft == pDel)
+            pDel->pParent->pLeft = NULL;
+         // delete the selected node
+         delete pDel;
+         // decrease size
+         numElements--;
+         return;
+      }
+      
+      // One Child (Nothing on the Right)
+      if (pDel->pRight == NULL && pDel->pLeft != NULL)
+      {
+         // move child node into erased node's spot
+         pDel->pLeft->pParent = pDel->pParent;
+         if (pDel->pParent != NULL && pDel->pParent->pRight == pDel)
+            pDel->pParent->pRight = pDel->pLeft;
+         if (pDel->pParent != NULL && pDel->pParent->pLeft == pDel)
+            pDel->pParent->pLeft = pDel->pLeft;
+         // delete the selected node
+         delete pDel;
+         // decrease size
+         numElements--;
+         return;
+      }
+      
+      // One Child (Nothing on the Left)
+      if (pDel->pLeft == NULL && pDel->pRight != NULL)
+      {
+         // move child node into erased node's spot
+         pDel->pRight->pParent = pDel->pParent;
+         if (pDel->pParent != NULL && pDel->pParent->pRight == pDel)
+            pDel->pParent->pRight = pDel->pRight;
+         if (pDel->pParent != NULL  && pDel->pParent->pLeft == pDel)
+            pDel->pParent->pLeft = pDel->pRight;
+         // delete the selected node
+         delete pDel;
+         // decrease size
+         numElements--;
+         return;
+      }
+      
+      // Two Children
+      if (pDel->pLeft != NULL && pDel->pRight != NULL)
+      {
+         // create a temp for the node
+         BNode * temp = it.pNode;
+         // find the position of the node to replace with
+         it++;
+         // move the data over
+         temp->data = it.pNode->data;
+         // erase the spot that is no longer needed
+         erase(it);
+         
+         return;
+      }
+   }
+   
+   
+   /*******************************************
+    * Increment Prefix
+    * Advance by one
+    *******************************************/
+   template <class T>
+      typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
+   {
+      // do nothing if we have nothing
+      if (NULL == pNode)
+         return *this;
+      
+      // if there is a right node, take it
+      if (NULL != pNode->pRight)
+      {
+         // go right
+         pNode = pNode->pRight;
+         
+         // jig left - there might be more left-most children
+         while (pNode->pLeft)
+            pNode = pNode->pLeft;
+         return *this;
+      }
+      
+      // there are no right children, the left are done
+      BNode * pSave = pNode;
+      
+      // go up
+      pNode = pNode->pParent;
+      
+      // if the parent is the NULL, we are done!
+      if (NULL == pNode)
+         return *this;
+      
+      // if we are the Left-child, got to the parent.
+      if (pSave == pNode->pLeft)
+         return *this;
+      
+      // we are the right-child, go up as long as we are the left child!
+      while (NULL != pNode && pSave == pNode->pRight)
+      {
+         pSave = pNode;
+         pNode = pNode->pParent;
+      }
+      
+      return *this;
+   }
+   
+   /**************************************************
+    * BST ITERATOR :: DECREMENT PREFIX
+    *     advance by one.
+    * Author:      Br. Helfrich
+    * Performance: O(log n) though O(1) in the common case
+    *************************************************/
+   template <class T>
+      typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
+   {
+      // do nothing if we have nothing
+      if (NULL == pNode)
+         return *this;
+      
+      // if there is a left node, take it
+      if (NULL != pNode->pLeft)
+      {
+         // go left
+         pNode = pNode->pLeft;
+         
+         // jig right - there might be more right-most children
+         while (pNode->pRight)
+            pNode = pNode->pRight;
+         return *this;
+      }
+      
+      // there are no left children, the right are done
+      BNode * pSave = pNode;
+      
+      // go up
+      pNode = pNode->pParent;
+      
+      // if the parent is the NULL, we are done!
+      if (NULL == pNode)
+         return *this;
+      
+      // if we are the right-child, got to the parent.
+      if (pSave == pNode->pRight)
+         return *this;
+      
+      // we are the left-child, go up as long as we are the left child!
+      while (NULL != pNode && pSave == pNode->pLeft)
+      {
+         pSave = pNode;
+         pNode = pNode->pParent;
+      }
+      
+      return *this;
+   }
+
+} // namespace custom
+
+#endif // BST_H

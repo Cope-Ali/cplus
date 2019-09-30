@@ -1,0 +1,57 @@
+/***********************************************************************
+ * Implementation:
+ *    TUTOR CENTER
+ * Summary:
+ *    This will contain the implementation for tutorCenter() as well as any
+ *    other function or class implementations you may need
+ * Author
+ *    Ashleigh Walter & Ali Cope
+ **********************************************************************/
+
+#include <iostream>     // for ISTREAM, OSTREAM, CIN, and COUT
+#include <string>       // for STRING
+#include <cassert>      // for ASSERT
+#include "tutorCenter.h" // 
+#include "deque.h"      // for DEQUE
+#include "student.h"
+//#include <deque>
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::ostream;
+using std::ios;
+//using namespace std;
+using namespace custom;
+
+
+/**********************************************************
+ * PASS TIME
+ * Function decreases the time left with the current student
+ * ********************************************************/
+void TutorCenter::passTime()
+{
+   if(currentStudent.getMin()>=1)
+   {
+      currentStudent.setMin(currentStudent.getMin() - 1);
+      if(currentStudent.getMin() <= 0)
+         getNewStudent();
+   }
+   else
+      getNewStudent();
+}
+
+/**********************************************************
+ * GET NEW STUDENT
+ * Function pops off student at the front of the line and
+ * sets as current student
+ * ********************************************************/
+void TutorCenter::getNewStudent()
+{
+   if(line.size())
+   {
+      currentStudent = line.front();
+      line.pop_front();
+   };
+}
+
