@@ -1,0 +1,28 @@
+/***********************************************************************
+ * Implementation:
+ *    HUFFMAN
+ * Summary:
+ *    This will contain the implementation for huffman()
+ * Author
+ *    Ashleigh Walter, Ali Cope & George Brown
+ **********************************************************************/
+
+#include <iostream>
+#include "huffman.h" // for huffman() prototype
+#include "bnode.h"      // for BNode
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::ostream;
+//using namespace std;
+using namespace custom;
+
+/************************************************
+ * HUFFMAN
+ * The interactive function allowing the user to
+ * display huffman codes
+ ***********************************************/
+void huffman(string filename)
+{
+}

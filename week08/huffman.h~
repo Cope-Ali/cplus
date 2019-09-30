@@ -1,0 +1,22 @@
+/***********************************************************************
+ * Header:
+ *    HUFFMAN
+ * Summary:
+ *    This will contain just the prototype for huffman(). 
+ * Author
+ *    Ali Cope, Ashleigh Walter & George Brown
+ ************************************************************************/
+
+#ifndef HUFFMAN_H
+#define HUFFMAN_H
+#include "bnode.h"
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::ostream;
+
+// the interactive huffman program
+void huffman();
+
+#endif // HUFFMAN_H
